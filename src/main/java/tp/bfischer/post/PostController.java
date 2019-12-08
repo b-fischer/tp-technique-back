@@ -8,7 +8,8 @@ import java.util.stream.Collectors;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,7 @@ public class PostController {
 
 		List<Post> sortedPosts = new ArrayList<Post>();
 		
-		DefaultHttpClient httpClient = new DefaultHttpClient();
+		CloseableHttpClient httpClient = HttpClients.createDefault();
 		HttpGet getRequest = new HttpGet(
 			"http://jsonplaceholder.typicode.com/posts");
 		getRequest.addHeader("accept", "application/json");
@@ -44,14 +45,11 @@ public class PostController {
 					.limit(50)
 					.sorted((post1, post2) -> post1.getTitle().compareTo(post2.getTitle()))
 					.collect(Collectors.toList());
-		} catch (ClientProtocolException e) {
-			LOGGER.error(e.getMessage());
-			throw e;
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
 			throw e;
 		} finally {
-			httpClient.getConnectionManager().shutdown();
+			httpClient.close();
 		}
 		
 		return sortedPosts;
